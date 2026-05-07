@@ -1,6 +1,12 @@
 {
-  "name": "my-pi-skills-extensions",
+  "name": "pi-skills-extensions",
   "version": "1.0.0",
+  "description": "Pi package: engineering skills and extension slots (extensions, prompts, themes).",
+  "keywords": ["pi-package"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NicoPowers/pi-skills-extensions.git"
+  },
   "pi": {
     "extensions": ["./extensions"],
     "skills": ["./skills"],
