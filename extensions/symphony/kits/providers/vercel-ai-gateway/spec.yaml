@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: vercel-ai-gateway-credentials
+displayName: Vercel AI Gateway Credentials
+description: Injects AI_GATEWAY_API_KEY via sbx proxy for gateway.vercel.com requests.
+
+network:
+  allowedDomains:
+    - gateway.vercel.com
+  serviceDomains:
+    gateway.vercel.com: vercel-ai-gateway
+  serviceAuth:
+    vercel-ai-gateway:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    vercel-ai-gateway:
+      env: [AI_GATEWAY_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    AI_GATEWAY_API_KEY: proxy-managed
+  proxyManaged: [AI_GATEWAY_API_KEY]

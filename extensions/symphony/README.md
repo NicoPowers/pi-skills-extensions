@@ -184,8 +184,10 @@ Unknown variables and filters throw an error and fail the attempt (`strictVariab
 
 | Placeholder | Expands to |
 |---|---|
-| `{model_arg}` | `--model '<agent.model>'` when a model is set, otherwise empty |
-| `{model}` | Raw model string, or empty |
+| `{model_arg}` | `--provider '<provider>' --model '<model>'` when provider is present (e.g. `anthropic/claude-sonnet-4:high` → `--provider anthropic --model claude-sonnet-4:high`); `--model '<model>'` when no provider prefix; empty when no model |
+| `{model}` | Model portion only (after `/`), or empty |
+| `{provider}` | Provider prefix (before `/`), or empty |
+| `{provider_arg}` | `--provider '<provider>'` when provider is present, otherwise empty |
 
 ---
 
@@ -348,6 +350,70 @@ sandbox:
     set -euo pipefail
     npm install
 ```
+
+---
+
+## Credential Setup
+
+Symphony automatically injects API credentials into each sandbox using sbx's credential proxy. The proxy intercepts outbound HTTP requests and adds the real key as an HTTP header — the key **never enters the VM**.
+
+### 1. Set API keys on the host
+
+```bash
+# Using sbx secret store (interactive prompt, persists across launches)
+sbx secret set -g anthropic    # sets ANTHROPIC_API_KEY
+sbx secret set -g openai       # sets OPENAI_API_KEY
+
+# Or export directly before starting Symphony
+export ANTHROPIC_API_KEY="sk-ant-..."
+export OPENAI_API_KEY="sk-..."
+export GEMINI_API_KEY="..."
+```
+
+### 2. Set models in WORKFLOW.md
+
+Symphony reads the provider prefix from every model string and auto-applies the matching credential kit. No extra config is needed:
+
+```yaml
+agent:
+  model: anthropic/claude-sonnet-4:high   # → applies anthropic kit automatically
+  model_labels:
+    opus: anthropic/claude-opus-4-7       # → same anthropic kit
+    fast: groq/llama-3.1-8b-instant      # → applies groq kit automatically
+```
+
+### Supported providers
+
+| Provider | Kit auto-detected via | Env var | API domain |
+|---|---|---|---|
+| `anthropic` | `anthropic/...` model strings | `ANTHROPIC_API_KEY` | `api.anthropic.com` |
+| `openai` | `openai/...` | `OPENAI_API_KEY` | `api.openai.com` |
+| `azure-openai-responses` | `azure-openai-responses/...` | `AZURE_OPENAI_API_KEY` | `*.openai.azure.com` |
+| `google` | `google/...` | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | `*.googleapis.com` |
+| `deepseek` | `deepseek/...` | `DEEPSEEK_API_KEY` | `api.deepseek.com` |
+| `mistral` | `mistral/...` | `MISTRAL_API_KEY` | `api.mistral.ai` |
+| `groq` | `groq/...` | `GROQ_API_KEY` | `api.groq.com` |
+| `cerebras` | `cerebras/...` | `CEREBRAS_API_KEY` | `api.cerebras.ai` |
+| `xai` | `xai/...` | `XAI_API_KEY` | `api.x.ai` |
+| `openrouter` | `openrouter/...` | `OPENROUTER_API_KEY` | `openrouter.ai` |
+| `cloudflare-ai-gateway` | `cloudflare-ai-gateway/...` | `CLOUDFLARE_API_KEY` | `*.cloudflare.com` |
+| `cloudflare-workers-ai` | `cloudflare-workers-ai/...` | `CLOUDFLARE_API_KEY` | `api.cloudflare.com` |
+| `vercel-ai-gateway` | `vercel-ai-gateway/...` | `AI_GATEWAY_API_KEY` | `gateway.vercel.com` |
+| `minimax` | `minimax/...` | `MINIMAX_API_KEY` | `api.minimax.chat` |
+| `kimi-coding` | `kimi-coding/...` | `KIMI_API_KEY` | `api.moonshot.cn` |
+
+### Explicit provider override
+
+Use `sandbox.credential_providers` to force-include providers that aren't detected from model strings:
+
+```yaml
+sandbox:
+  credential_providers: [anthropic, openai]   # always inject these, regardless of model strings
+```
+
+### Custom providers
+
+Drop a `spec.yaml` into `extensions/symphony/kits/providers/<name>/` following the [kit schema](../../skills/docker-sandbox/SKILL.md#kit-schema-reference). It will be auto-applied whenever `<name>/` appears as the prefix of any configured model string.
 
 ---
 

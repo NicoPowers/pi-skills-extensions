@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: openai-credentials
+displayName: OpenAI API Credentials
+description: Injects OPENAI_API_KEY via sbx proxy for api.openai.com requests.
+
+network:
+  allowedDomains:
+    - api.openai.com
+  serviceDomains:
+    api.openai.com: openai
+  serviceAuth:
+    openai:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    openai:
+      env: [OPENAI_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    OPENAI_API_KEY: proxy-managed
+  proxyManaged: [OPENAI_API_KEY]

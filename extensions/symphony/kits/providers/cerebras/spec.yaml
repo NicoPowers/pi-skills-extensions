@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: cerebras-credentials
+displayName: Cerebras API Credentials
+description: Injects CEREBRAS_API_KEY via sbx proxy for api.cerebras.ai requests.
+
+network:
+  allowedDomains:
+    - api.cerebras.ai
+  serviceDomains:
+    api.cerebras.ai: cerebras
+  serviceAuth:
+    cerebras:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    cerebras:
+      env: [CEREBRAS_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    CEREBRAS_API_KEY: proxy-managed
+  proxyManaged: [CEREBRAS_API_KEY]

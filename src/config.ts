@@ -52,6 +52,7 @@ export interface SymphonyConfig {
     name_prefix: string;
     template?: string;
     kits: string[];
+    credential_providers: string[];
     cpus?: number;
     memory?: string;
     remove_on_terminal: boolean;
@@ -251,6 +252,7 @@ export function resolveWorkflowConfig(raw: Record<string, any>, workflowPath: st
   const sandboxAgent = optionalString(sandbox.agent, "sandbox.agent") ?? "shell";
   const sandboxNamePrefix = optionalString(sandbox.name_prefix, "sandbox.name_prefix") ?? "symphony";
   const sandboxKits = stringList(sandbox.kits, [], "sandbox.kits");
+  const sandboxCredentialProviders = stringList(sandbox.credential_providers, [], "sandbox.credential_providers");
   const sandboxCpus = sandbox.cpus == null ? undefined : nonNegativeInteger(sandbox.cpus, "sandbox.cpus");
   const sandboxMemory = optionalString(sandbox.memory, "sandbox.memory");
 
@@ -303,6 +305,7 @@ export function resolveWorkflowConfig(raw: Record<string, any>, workflowPath: st
       name_prefix: sandboxNamePrefix,
       template: optionalString(sandbox.template, "sandbox.template"),
       kits: sandboxKits,
+      credential_providers: sandboxCredentialProviders,
       cpus: sandboxCpus,
       memory: sandboxMemory,
       remove_on_terminal: sandbox.remove_on_terminal == null ? true : Boolean(sandbox.remove_on_terminal),

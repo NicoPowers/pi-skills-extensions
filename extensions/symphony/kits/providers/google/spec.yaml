@@ -1,0 +1,28 @@
+schemaVersion: "1"
+kind: mixin
+name: google-credentials
+displayName: Google AI / Gemini API Credentials
+description: Injects GEMINI_API_KEY via sbx proxy for Google AI requests.
+
+network:
+  allowedDomains:
+    - generativelanguage.googleapis.com
+    - "*.googleapis.com"
+  serviceDomains:
+    generativelanguage.googleapis.com: google
+  serviceAuth:
+    google:
+      headerName: x-goog-api-key
+      valueFormat: "%s"
+
+credentials:
+  sources:
+    google:
+      env: [GEMINI_API_KEY, GOOGLE_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    GEMINI_API_KEY: proxy-managed
+    GOOGLE_API_KEY: proxy-managed
+  proxyManaged: [GEMINI_API_KEY, GOOGLE_API_KEY]

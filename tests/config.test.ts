@@ -86,6 +86,24 @@ describe("workflow config", () => {
     expect(config.sandbox).toMatchObject({ kind: "docker-sbx", agent: "shell", name_prefix: "sym", template: "custom", kits: ["kit-a"], cpus: 0, memory: "8g", setup: "echo ok" });
   });
 
+  it("credential_providers defaults to empty array", () => {
+    const config = resolveWorkflowConfig(secureConfig(), "/tmp/WORKFLOW.md");
+    expect(config.sandbox.credential_providers).toEqual([]);
+  });
+
+  it("credential_providers preserves provided values", () => {
+    const config = resolveWorkflowConfig(secureConfig({
+      sandbox: { credential_providers: ["anthropic", "openai"] }
+    }), "/tmp/WORKFLOW.md");
+    expect(config.sandbox.credential_providers).toEqual(["anthropic", "openai"]);
+  });
+
+  it("rejects credential_providers with non-string values", () => {
+    expect(() => resolveWorkflowConfig(secureConfig({
+      sandbox: { credential_providers: ["anthropic", 42] }
+    }), "/tmp/WORKFLOW.md")).toThrow(/sandbox.credential_providers/);
+  });
+
   it("parses model_labels with lowercased keys, ignoring non-string values", () => {
     const config = resolveWorkflowConfig(secureConfig({
       agent: { model: "default-model", model_labels: { Opus: "big-model", SONNET: "mid-model", bad: 42, empty: "" } }

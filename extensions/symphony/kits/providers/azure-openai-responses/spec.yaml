@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: azure-openai-credentials
+displayName: Azure OpenAI API Credentials
+description: Injects AZURE_OPENAI_API_KEY via sbx proxy for *.openai.azure.com requests.
+
+network:
+  allowedDomains:
+    - "*.openai.azure.com"
+  serviceDomains:
+    "*.openai.azure.com": azure-openai
+  serviceAuth:
+    azure-openai:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    azure-openai:
+      env: [AZURE_OPENAI_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    AZURE_OPENAI_API_KEY: proxy-managed
+  proxyManaged: [AZURE_OPENAI_API_KEY]

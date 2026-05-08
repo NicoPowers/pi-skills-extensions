@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: anthropic-credentials
+displayName: Anthropic API Credentials
+description: Injects ANTHROPIC_API_KEY via sbx proxy for api.anthropic.com requests.
+
+network:
+  allowedDomains:
+    - api.anthropic.com
+  serviceDomains:
+    api.anthropic.com: anthropic
+  serviceAuth:
+    anthropic:
+      headerName: x-api-key
+      valueFormat: "%s"
+
+credentials:
+  sources:
+    anthropic:
+      env: [ANTHROPIC_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    ANTHROPIC_API_KEY: proxy-managed
+  proxyManaged: [ANTHROPIC_API_KEY]

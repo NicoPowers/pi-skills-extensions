@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: deepseek-credentials
+displayName: DeepSeek API Credentials
+description: Injects DEEPSEEK_API_KEY via sbx proxy for api.deepseek.com requests.
+
+network:
+  allowedDomains:
+    - api.deepseek.com
+  serviceDomains:
+    api.deepseek.com: deepseek
+  serviceAuth:
+    deepseek:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    deepseek:
+      env: [DEEPSEEK_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    DEEPSEEK_API_KEY: proxy-managed
+  proxyManaged: [DEEPSEEK_API_KEY]

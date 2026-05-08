@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: mistral-credentials
+displayName: Mistral API Credentials
+description: Injects MISTRAL_API_KEY via sbx proxy for api.mistral.ai requests.
+
+network:
+  allowedDomains:
+    - api.mistral.ai
+  serviceDomains:
+    api.mistral.ai: mistral
+  serviceAuth:
+    mistral:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    mistral:
+      env: [MISTRAL_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    MISTRAL_API_KEY: proxy-managed
+  proxyManaged: [MISTRAL_API_KEY]

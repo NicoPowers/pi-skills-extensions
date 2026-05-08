@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: minimax-credentials
+displayName: Minimax API Credentials
+description: Injects MINIMAX_API_KEY via sbx proxy for api.minimax.chat requests.
+
+network:
+  allowedDomains:
+    - api.minimax.chat
+  serviceDomains:
+    api.minimax.chat: minimax
+  serviceAuth:
+    minimax:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    minimax:
+      env: [MINIMAX_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    MINIMAX_API_KEY: proxy-managed
+  proxyManaged: [MINIMAX_API_KEY]

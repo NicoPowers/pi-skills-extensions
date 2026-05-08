@@ -4,7 +4,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
 import { tmpdir } from "os";
-import { ensureWorkspace, isCandidateEligible, resolveModelForIssue, sanitizeIdentifier, sandboxNameForIssue, sortForDispatch, toSandboxPath, validateIsolationPreflight } from "../src/orchestrator.js";
+import { ensureWorkspace, extractProvider, isCandidateEligible, parseModelString, resolveModelForIssue, sanitizeIdentifier, sandboxNameForIssue, sortForDispatch, toSandboxPath, validateIsolationPreflight } from "../src/orchestrator.js";
 import { resolveWorkflowConfig, type WorkflowDefinition } from "../src/config.js";
 import type { Issue } from "../src/linear.js";
 
@@ -132,6 +132,22 @@ describe("orchestrator helpers", () => {
     expect(toSandboxPath("/c/Users/nicol/project")).toBe("/c/Users/nicol/project");
 
     Object.defineProperty(process, "platform", { value: realPlatform, configurable: true });
+  });
+
+  it("extractProvider parses provider prefix from model strings", () => {
+    expect(extractProvider("anthropic/claude-sonnet-4:high")).toBe("anthropic");
+    expect(extractProvider("openai/gpt-4o")).toBe("openai");
+    expect(extractProvider("azure-openai-responses/gpt-4o")).toBe("azure-openai-responses");
+    expect(extractProvider("claude-sonnet-4")).toBeUndefined();
+    expect(extractProvider("")).toBeUndefined();
+  });
+
+  it("parseModelString splits provider and model correctly", () => {
+    expect(parseModelString("anthropic/claude-sonnet-4:high")).toEqual(["anthropic", "claude-sonnet-4:high"]);
+    expect(parseModelString("openai/gpt-4o")).toEqual(["openai", "gpt-4o"]);
+    expect(parseModelString("google/gemini-2.0-flash")).toEqual(["google", "gemini-2.0-flash"]);
+    expect(parseModelString("claude-sonnet-4")).toEqual([undefined, "claude-sonnet-4"]);
+    expect(parseModelString("ANTHROPIC/Claude-3")).toEqual(["anthropic", "Claude-3"]);
   });
 
   it("resolveModelForIssue returns undefined when no model is configured", () => {

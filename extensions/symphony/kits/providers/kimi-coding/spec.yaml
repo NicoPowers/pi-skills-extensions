@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: kimi-coding-credentials
+displayName: Kimi Coding API Credentials
+description: Injects KIMI_API_KEY via sbx proxy for api.moonshot.cn requests.
+
+network:
+  allowedDomains:
+    - api.moonshot.cn
+  serviceDomains:
+    api.moonshot.cn: kimi
+  serviceAuth:
+    kimi:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    kimi:
+      env: [KIMI_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    KIMI_API_KEY: proxy-managed
+  proxyManaged: [KIMI_API_KEY]

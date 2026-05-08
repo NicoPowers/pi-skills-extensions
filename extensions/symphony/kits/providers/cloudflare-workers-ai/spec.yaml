@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: cloudflare-workers-ai-credentials
+displayName: Cloudflare Workers AI Credentials
+description: Injects CLOUDFLARE_API_KEY via sbx proxy for api.cloudflare.com requests.
+
+network:
+  allowedDomains:
+    - api.cloudflare.com
+  serviceDomains:
+    api.cloudflare.com: cloudflare-workers
+  serviceAuth:
+    cloudflare-workers:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    cloudflare-workers:
+      env: [CLOUDFLARE_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    CLOUDFLARE_API_KEY: proxy-managed
+  proxyManaged: [CLOUDFLARE_API_KEY]

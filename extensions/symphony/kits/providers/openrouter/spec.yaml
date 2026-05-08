@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: openrouter-credentials
+displayName: OpenRouter API Credentials
+description: Injects OPENROUTER_API_KEY via sbx proxy for openrouter.ai requests.
+
+network:
+  allowedDomains:
+    - openrouter.ai
+  serviceDomains:
+    openrouter.ai: openrouter
+  serviceAuth:
+    openrouter:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    openrouter:
+      env: [OPENROUTER_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    OPENROUTER_API_KEY: proxy-managed
+  proxyManaged: [OPENROUTER_API_KEY]

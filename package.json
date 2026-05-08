@@ -16,7 +16,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "vitest run tests/provider-e2e.test.ts"
   },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",

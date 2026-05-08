@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: groq-credentials
+displayName: Groq API Credentials
+description: Injects GROQ_API_KEY via sbx proxy for api.groq.com requests.
+
+network:
+  allowedDomains:
+    - api.groq.com
+  serviceDomains:
+    api.groq.com: groq
+  serviceAuth:
+    groq:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    groq:
+      env: [GROQ_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    GROQ_API_KEY: proxy-managed
+  proxyManaged: [GROQ_API_KEY]

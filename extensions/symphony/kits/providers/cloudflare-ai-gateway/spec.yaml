@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: cloudflare-ai-gateway-credentials
+displayName: Cloudflare AI Gateway Credentials
+description: Injects CLOUDFLARE_API_KEY via sbx proxy for Cloudflare AI Gateway requests.
+
+network:
+  allowedDomains:
+    - "*.cloudflare.com"
+  serviceDomains:
+    "*.cloudflare.com": cloudflare
+  serviceAuth:
+    cloudflare:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    cloudflare:
+      env: [CLOUDFLARE_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    CLOUDFLARE_API_KEY: proxy-managed
+  proxyManaged: [CLOUDFLARE_API_KEY]

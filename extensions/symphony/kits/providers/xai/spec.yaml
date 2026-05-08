@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: mixin
+name: xai-credentials
+displayName: xAI API Credentials
+description: Injects XAI_API_KEY via sbx proxy for api.x.ai requests.
+
+network:
+  allowedDomains:
+    - api.x.ai
+  serviceDomains:
+    api.x.ai: xai
+  serviceAuth:
+    xai:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    xai:
+      env: [XAI_API_KEY]
+      priority: env-first
+
+environment:
+  variables:
+    XAI_API_KEY: proxy-managed
+  proxyManaged: [XAI_API_KEY]

@@ -4,7 +4,7 @@ import { LinearClient, Issue } from "./linear.js";
 import { exec, spawn, ChildProcess } from "child_process";
 import { mkdir, rm, stat, writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { dirname, isAbsolute, relative, resolve, sep } from "path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "path";
 import { promisify } from "util";
 import { Liquid } from "liquidjs";
 
@@ -129,6 +129,34 @@ export function toSandboxPath(hostPath: string): string {
     .replace(/\\/g, "/");
 }
 
+export function extractProvider(modelStr: string): string | undefined {
+  const slash = modelStr.indexOf("/");
+  return slash >= 0 ? modelStr.slice(0, slash).toLowerCase() : undefined;
+}
+
+export function parseModelString(modelStr: string): [provider: string | undefined, model: string] {
+  const slash = modelStr.indexOf("/");
+  if (slash < 0) return [undefined, modelStr];
+  return [modelStr.slice(0, slash).toLowerCase(), modelStr.slice(slash + 1)];
+}
+
+function resolveProviderKits(workflow: WorkflowDefinition): string[] {
+  const models = [
+    workflow.config.agent.model,
+    ...Object.values(workflow.config.agent.model_labels),
+  ].filter((m): m is string => !!m);
+
+  const providers = new Set([
+    ...models.map(extractProvider).filter((p): p is string => !!p),
+    ...workflow.config.sandbox.credential_providers,
+  ]);
+
+  const kitsDir = join(__dirname, "../extensions/symphony/kits/providers");
+  return [...providers]
+    .map((p) => join(kitsDir, p))
+    .filter((p) => existsSync(p));
+}
+
 export async function renderPrompt(workflow: WorkflowDefinition, issue: Issue, attempt: number | null) {
   return String(await engine.parseAndRender(workflow.prompt_template, { issue, attempt }));
 }
@@ -143,11 +171,23 @@ export function resolveModelForIssue(workflow: WorkflowDefinition, issue: Issue)
 
 function buildAgentCommand(workflow: WorkflowDefinition, issue: Issue, prompt: string) {
   const model = resolveModelForIssue(workflow, issue);
-  const modelArg = model ? `--model ${shellQuote(model)}` : "";
+  let providerStr = "";
+  let modelStr = "";
+  let modelArg = "";
+
+  if (model) {
+    const [provider, modelName] = parseModelString(model);
+    providerStr = provider ?? "";
+    modelStr = modelName;
+    const providerFlag = provider ? `--provider ${shellQuote(provider)}` : "";
+    modelArg = [providerFlag, `--model ${shellQuote(modelName)}`].filter(Boolean).join(" ");
+  }
 
   return workflow.config.agent.command
     .replaceAll("{prompt}", prompt.replace(/"/g, '\\"'))
-    .replaceAll("{model}", model ?? "")
+    .replaceAll("{model}", modelStr)
+    .replaceAll("{provider}", providerStr)
+    .replaceAll("{provider_arg}", providerStr ? `--provider ${shellQuote(providerStr)}` : "")
     .replaceAll("{model_arg}", modelArg);
 }
 
@@ -337,7 +377,7 @@ async function removeWorkspace(workflow: WorkflowDefinition, issue: Issue, works
 function sbxCreateArgs(workflow: WorkflowDefinition, issue: Issue, workspacePath: string) {
   const args = ["create", "--name", sandboxNameForIssue(workflow, issue)];
   if (workflow.config.sandbox.template) args.push("--template", workflow.config.sandbox.template);
-  for (const kit of workflow.config.sandbox.kits) args.push("--kit", kit);
+  for (const kit of [...resolveProviderKits(workflow), ...workflow.config.sandbox.kits]) args.push("--kit", kit);
   if (workflow.config.sandbox.cpus !== undefined) args.push("--cpus", String(workflow.config.sandbox.cpus));
   if (workflow.config.sandbox.memory) args.push("--memory", workflow.config.sandbox.memory);
   args.push(workflow.config.sandbox.agent, workspacePath);
