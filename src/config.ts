@@ -35,6 +35,7 @@ export interface SymphonyConfig {
     max_retry_backoff_ms: number;
     max_concurrent_agents_by_state: Record<string, number>;
     model?: string;
+    model_labels: Record<string, string>;
     command: string;
   };
   codex: {
@@ -225,6 +226,14 @@ export function resolveWorkflowConfig(raw: Record<string, any>, workflowPath: st
   }
 
   const model = optionalString(agent.model, "agent.model");
+
+  const rawModelLabels = isRecord(agent.model_labels) ? agent.model_labels : {};
+  const modelLabels: Record<string, string> = {};
+  for (const [key, val] of Object.entries(rawModelLabels)) {
+    if (typeof val === "string" && val.trim()) {
+      modelLabels[key.toLowerCase()] = val.trim();
+    }
+  }
   const requiredLabel = optionalString(eligibility.todo_required_label, "eligibility.todo_required_label") ?? "symphony";
   const workspaceStrategy = optionalString(workspace.strategy, "workspace.strategy") ?? "git-worktree";
   if (workspaceStrategy !== "git-worktree") {
@@ -277,6 +286,7 @@ export function resolveWorkflowConfig(raw: Record<string, any>, workflowPath: st
       max_retry_backoff_ms: positiveInteger(agent.max_retry_backoff_ms, 300000, "agent.max_retry_backoff_ms"),
       max_concurrent_agents_by_state: normalizeConcurrencyByState(agent.max_concurrent_agents_by_state),
       model,
+      model_labels: modelLabels,
       command,
     },
     codex: {

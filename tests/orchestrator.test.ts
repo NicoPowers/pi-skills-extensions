@@ -4,7 +4,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
 import { tmpdir } from "os";
-import { ensureWorkspace, isCandidateEligible, sanitizeIdentifier, sandboxNameForIssue, sortForDispatch, validateIsolationPreflight } from "../src/orchestrator.js";
+import { ensureWorkspace, isCandidateEligible, resolveModelForIssue, sanitizeIdentifier, sandboxNameForIssue, sortForDispatch, toSandboxPath, validateIsolationPreflight } from "../src/orchestrator.js";
 import { resolveWorkflowConfig, type WorkflowDefinition } from "../src/config.js";
 import type { Issue } from "../src/linear.js";
 
@@ -99,6 +99,46 @@ describe("orchestrator helpers", () => {
     } finally {
       process.env.PATH = oldPath;
     }
+  });
+
+  it("resolves model from issue labels, falling back to workflow default", () => {
+    const wf = workflow(tmpdir());
+    wf.config.agent.model = "default-model";
+    wf.config.agent.model_labels = { opus: "big-model", sonnet: "mid-model" };
+
+    expect(resolveModelForIssue(wf, issue({ labels: ["symphony"] }))).toBe("default-model");
+    expect(resolveModelForIssue(wf, issue({ labels: ["symphony", "opus"] }))).toBe("big-model");
+    expect(resolveModelForIssue(wf, issue({ labels: ["sonnet", "opus"] }))).toBe("mid-model");
+    expect(resolveModelForIssue(wf, issue({ labels: [] }))).toBe("default-model");
+  });
+
+  it("toSandboxPath converts Windows paths to Linux sandbox paths", () => {
+    const realPlatform = process.platform;
+    Object.defineProperty(process, "platform", { value: "win32", configurable: true });
+
+    expect(toSandboxPath("C:\\Users\\nicol\\project")).toBe("/c/Users/nicol/project");
+    expect(toSandboxPath("C:\\Users\\nicol\\worktrees\\ENG-42")).toBe("/c/Users/nicol/worktrees/ENG-42");
+    expect(toSandboxPath("D:\\work\\repo")).toBe("/d/work/repo");
+    expect(toSandboxPath("c:\\lowercase\\drive")).toBe("/c/lowercase/drive");
+
+    Object.defineProperty(process, "platform", { value: realPlatform, configurable: true });
+  });
+
+  it("toSandboxPath is a no-op on non-Windows platforms", () => {
+    const realPlatform = process.platform;
+    Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+
+    expect(toSandboxPath("/home/user/project")).toBe("/home/user/project");
+    expect(toSandboxPath("/c/Users/nicol/project")).toBe("/c/Users/nicol/project");
+
+    Object.defineProperty(process, "platform", { value: realPlatform, configurable: true });
+  });
+
+  it("resolveModelForIssue returns undefined when no model is configured", () => {
+    const wf = workflow(tmpdir());
+    wf.config.agent.model = undefined;
+    wf.config.agent.model_labels = {};
+    expect(resolveModelForIssue(wf, issue())).toBeUndefined();
   });
 
   it("sorts by priority, created_at, then identifier", () => {

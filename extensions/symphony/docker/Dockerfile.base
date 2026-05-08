@@ -1,0 +1,50 @@
+# ─── Symphony Pi Worker — Base Image ─────────────────────────────────────────
+# Lightweight Linux foundation for all Symphony worker types.
+# Built FROM the official sbx shell template (no pre-installed agent).
+#
+# Build:
+#   docker build -f Dockerfile.base -t pi-symphony-base:v1 .
+#
+# Push to Docker Hub (only Hub supports private templates in sbx):
+#   docker push pi-symphony-base:v1
+#
+# Load locally (for registries other than Hub):
+#   docker image save pi-symphony-base:v1 -o pi-symphony-base.tar
+#   sbx template load pi-symphony-base.tar
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM docker/sandbox-templates:shell
+
+# ── System packages (run as root) ────────────────────────────────────────────
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    ca-certificates \
+    jq \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Pi CLI + extensions (run as agent) ───────────────────────────────────────
+USER agent
+
+# Install Pi CLI.
+RUN curl -fsSL https://pi.dev/install.sh | sh
+
+# Add Pi to PATH for all subsequent RUN steps.
+ENV PATH="/home/agent/.pi/bin:${PATH}"
+
+# Install Pi worker packages.
+# These are baked in so workers skip install on every run.
+RUN pi install npm:pi-subagents && \
+    pi install git:github.com/NicoPowers/pi-linear-tools && \
+    pi install git:github.com/NicoPowers/pi-skills-extensions
+
+# ── Node (optional — remove if your workflows don't need it) ─────────────────
+# The shell base image does not include Node. Add it here if workers
+# need to run npm/npx commands inside the sandbox.
+# RUN curl -fsSL https://nodejs.org/dist/v22.0.0/node-v22.0.0-linux-x64.tar.xz \
+#     | tar -xJ -C /home/agent/.local --strip-components=1
+
+WORKDIR /workspace

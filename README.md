@@ -5,19 +5,17 @@ Public Pi package for **engineering skills**, the **Symphony** Linear orchestrat
 > [!WARNING]
 > Symphony is experimental and has not been tested in production. Use only in isolated, disposable environments until you have validated security and operational behavior for your workflow.
 
-Symphony follows the portable OpenAI [Symphony service specification](https://github.com/openai/symphony/blob/main/SPEC.md) ideas for scheduling, Linear polling, per-issue workspaces, retries, hooks, and cleanup, but runs Pi agents through **Docker Sandbox** isolation and **git worktrees** instead of the upstream Codex app-server protocol. See [`docs/symphony/SPEC_CONFORMANCE.md`](docs/symphony/SPEC_CONFORMANCE.md) for the conformance matrix.
+Symphony follows the portable OpenAI [Symphony service specification](https://github.com/openai/symphony/blob/main/SPEC.md) ideas for scheduling, Linear polling, per-issue workspaces, retries, hooks, and cleanup, but runs Pi agents through **Docker Sandbox** isolation and **git worktrees** instead of the upstream Codex app-server protocol. See [`extensions/symphony/README.md`](extensions/symphony/README.md) for the full Symphony reference and [`extensions/symphony/docs/SPEC_CONFORMANCE.md`](extensions/symphony/docs/SPEC_CONFORMANCE.md) for the conformance matrix.
 
 ## Repository layout
 
 ```
-extensions/           ← Pi extensions (includes Symphony entrypoint)
+extensions/symphony/  ← Symphony Pi extension (entrypoint, README, workflow-templates, docs)
 skills/               ← skill dirs (each needs a SKILL.md)
 prompts/              ← prompt templates
 themes/               ← JSON themes
-workflow-templates/   ← starter WORKFLOW.md templates for Linear + Symphony
 src/                  ← Symphony scheduler implementation (TypeScript)
 tests/                ← Vitest suite for Symphony
-docs/symphony/        ← Symphony documentation (spec conformance, repo notes)
 ```
 
 ## Install (global)
@@ -89,12 +87,12 @@ Labels are normalized to lowercase internally (`Symphony`, `symphony`, `SYMPHONY
 
 ## Symphony — create `WORKFLOW.md`
 
-Copy a template from [`workflow-templates/`](workflow-templates/):
+Copy a template from [`extensions/symphony/workflow-templates/`](extensions/symphony/workflow-templates/):
 
-- [`01-basic-linear.WORKFLOW.md`](workflow-templates/01-basic-linear.WORKFLOW.md)
-- [`02-git-worktree.WORKFLOW.md`](workflow-templates/02-git-worktree.WORKFLOW.md)
-- [`03-subagent-review-loop.WORKFLOW.md`](workflow-templates/03-subagent-review-loop.WORKFLOW.md)
-- [`04-docker-sbx-sandbox.WORKFLOW.md`](workflow-templates/04-docker-sbx-sandbox.WORKFLOW.md)
+- [`01-basic-linear.WORKFLOW.md`](extensions/symphony/workflow-templates/01-basic-linear.WORKFLOW.md)
+- [`02-git-worktree.WORKFLOW.md`](extensions/symphony/workflow-templates/02-git-worktree.WORKFLOW.md)
+- [`03-subagent-review-loop.WORKFLOW.md`](extensions/symphony/workflow-templates/03-subagent-review-loop.WORKFLOW.md)
+- [`04-docker-sbx-sandbox.WORKFLOW.md`](extensions/symphony/workflow-templates/04-docker-sbx-sandbox.WORKFLOW.md)
 
 Place `WORKFLOW.md` in the repository you want Symphony to operate on (or pass an explicit path to `/symphony`).
 
@@ -111,7 +109,7 @@ Template placeholders:
 - `{model}` — raw configured model string.
 - `{model_arg}` — expands to `--model '<agent.model>'` when set, otherwise empty.
 
-Worker/hook environment variables include `SYMPHONY_PROMPT`, `SYMPHONY_ISSUE_ID`, `SYMPHONY_ISSUE_IDENTIFIER`, `SYMPHONY_ISSUE_TITLE`, and `SYMPHONY_AGENT_MODEL`.
+Worker/hook environment variables include `SYMPHONY_PROMPT`, `SYMPHONY_ISSUE_ID`, `SYMPHONY_ISSUE_IDENTIFIER`, `SYMPHONY_ISSUE_TITLE`, `SYMPHONY_ISSUE_LABELS`, and `SYMPHONY_AGENT_MODEL`.
 
 ### Model selection
 
@@ -158,7 +156,7 @@ Use `/symphony [path/to/WORKFLOW.md]` or `/symphony-status` inside Pi for explic
 - HTTP dashboard/API deferred; `/symphony-status` is the near-term operator surface.
 - Retry/session state is in-memory and not restored across daemon restarts.
 
-Additional detail: [`docs/symphony/SPEC_CONFORMANCE.md`](docs/symphony/SPEC_CONFORMANCE.md).
+Additional detail: [`extensions/symphony/docs/SPEC_CONFORMANCE.md`](extensions/symphony/docs/SPEC_CONFORMANCE.md).
 
 ## Usage
 
@@ -187,4 +185,4 @@ npm run build   # TypeScript compile (see tsconfig.json / dist/)
 npm test        # Vitest
 ```
 
-Symphony sources live under `extensions/symphony.ts` and `src/`. CI runs `npm ci`, `npm run build`, and `npm test` on each push and pull request to `main`.
+Symphony sources live under `extensions/symphony/` and `src/`. CI runs `npm ci`, `npm run build`, and `npm test` on each push and pull request to `main`.

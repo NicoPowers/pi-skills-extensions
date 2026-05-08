@@ -86,6 +86,19 @@ describe("workflow config", () => {
     expect(config.sandbox).toMatchObject({ kind: "docker-sbx", agent: "shell", name_prefix: "sym", template: "custom", kits: ["kit-a"], cpus: 0, memory: "8g", setup: "echo ok" });
   });
 
+  it("parses model_labels with lowercased keys, ignoring non-string values", () => {
+    const config = resolveWorkflowConfig(secureConfig({
+      agent: { model: "default-model", model_labels: { Opus: "big-model", SONNET: "mid-model", bad: 42, empty: "" } }
+    }), "/tmp/WORKFLOW.md");
+    expect(config.agent.model).toBe("default-model");
+    expect(config.agent.model_labels).toEqual({ opus: "big-model", sonnet: "mid-model" });
+  });
+
+  it("defaults model_labels to empty when absent or non-map", () => {
+    const config = resolveWorkflowConfig(secureConfig(), "/tmp/WORKFLOW.md");
+    expect(config.agent.model_labels).toEqual({});
+  });
+
   it("strict liquid rendering includes attempt and rejects unknown variables", async () => {
     const config = resolveWorkflowConfig(secureConfig(), "/tmp/WORKFLOW.md");
     await expect(renderPrompt({ config, prompt_template: "{{ issue.identifier }} {{ attempt }}", path: "/tmp/WORKFLOW.md" }, issue, 2)).resolves.toBe("ENG-1 2");

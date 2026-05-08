@@ -1,0 +1,25 @@
+# ─── Symphony Pi Worker — QA / Review Agent ──────────────────────────────────
+# Extends the base image with tools for QA, review, and triage issues.
+# Skills injected: grill-me, triage, zoom-out (via pi-skills-extensions in base)
+#
+# Build:
+#   docker build -f Dockerfile.qa -t pi-symphony-qa:v1 .
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM pi-symphony-base:v1
+
+USER root
+
+# Add QA-specific system packages here.
+# e.g. test runners, static analysis tools.
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     python3-pip \
+#     && rm -rf /var/lib/apt/lists/*
+
+USER agent
+
+# Add QA-specific user-level tools here.
+# e.g. linters, formatters, coverage tools.
+# RUN pip install --user ruff pytest
+
+WORKDIR /workspace

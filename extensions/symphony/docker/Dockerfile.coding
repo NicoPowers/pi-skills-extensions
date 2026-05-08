@@ -1,0 +1,27 @@
+# ─── Symphony Pi Worker — Coding Agent ───────────────────────────────────────
+# Extends the base image with tools for implementation/coding issues.
+# Skills injected: tdd, diagnose, improve-codebase-architecture
+# (skills are already in pi-skills-extensions, baked into the base)
+#
+# Build:
+#   docker build -f Dockerfile.coding -t pi-symphony-coding:v1 .
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM pi-symphony-base:v1
+
+USER root
+
+# Add any coding-specific system packages here.
+# e.g. build tools, compilers, language runtimes not in the base.
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     build-essential \
+#     && rm -rf /var/lib/apt/lists/*
+
+USER agent
+
+# Add coding-specific user-level tools here.
+# e.g. language version managers, linters, formatters.
+# RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y
+# RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+
+WORKDIR /workspace

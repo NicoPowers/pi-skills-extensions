@@ -3,13 +3,13 @@
   "version": "2.0.0",
   "description": "Pi package: engineering skills, Symphony orchestrator, prompts, and themes.",
   "keywords": ["pi-package"],
-  "main": "extensions/symphony.ts",
+  "main": "extensions/symphony/symphony.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/NicoPowers/pi-skills-extensions.git"
   },
   "pi": {
-    "extensions": ["./extensions"],
+    "extensions": ["./extensions/symphony"],
     "skills": ["./skills"],
     "prompts": ["./prompts"],
     "themes": ["./themes"]

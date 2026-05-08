@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documents\\\\Projects\\\\pi-skills-extensions\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"Directory\"}else{\"File\"}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\nicol\\\\OneDrive\\\\Documents\\\\Projects\\\\pi-skills-extensions\\\\skills\\\\engineering\" -Directory | ForEach-Object { $_.Name } | Sort-Object)",
+      "WebFetch(domain:docs.docker.com)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(New-Item *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(ls node_modules/.bin/tsc)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm install *)",
+      "Bash(npm test *)",
+      "Bash(sbx --version)",
+      "Bash(sbx ls *)",
+      "PowerShell(sbx *)",
+      "Bash(git add *)"
+    ]
+  }
+}

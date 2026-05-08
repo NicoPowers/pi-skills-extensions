@@ -1,10 +1,10 @@
 import { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { formatRuntimeStatus, runSymphony } from "../src/orchestrator.js";
+import { formatRuntimeStatus, runSymphony } from "../../src/orchestrator.js";
 import { resolve } from "path";
 
 export default function (pi: ExtensionAPI) {
   let isStopped = false;
-  
+
   pi.on("session_shutdown", () => {
     isStopped = true;
   });
@@ -37,7 +37,7 @@ export default function (pi: ExtensionAPI) {
     if (pi.getFlag("symphony")) {
       console.log("[Symphony] Starting daemon from flag...");
       const workflowPath = resolve(ctx.cwd, "WORKFLOW.md");
-      
+
       runSymphony(pi, ctx, workflowPath, () => isStopped).catch(e => {
         console.error(`[Symphony] error: ${e.message}`);
       });

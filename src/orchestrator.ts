@@ -118,12 +118,31 @@ function shellQuote(value: string) {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+// On Windows, sbx mounts C:\ at /c/ inside the Linux microVM.
+// sbx create accepts Windows paths for mounting, but sbx exec -w requires
+// the Linux path as seen inside the container.
+export function toSandboxPath(hostPath: string): string {
+  if (process.platform !== "win32") return hostPath;
+  // C:\Users\foo\bar → /c/Users/foo/bar
+  return hostPath
+    .replace(/^([A-Za-z]):[\\\/]/, (_, drive) => `/${drive.toLowerCase()}/`)
+    .replace(/\\/g, "/");
+}
+
 export async function renderPrompt(workflow: WorkflowDefinition, issue: Issue, attempt: number | null) {
   return String(await engine.parseAndRender(workflow.prompt_template, { issue, attempt }));
 }
 
-function buildAgentCommand(workflow: WorkflowDefinition, prompt: string) {
-  const model = workflow.config.agent.model;
+export function resolveModelForIssue(workflow: WorkflowDefinition, issue: Issue): string | undefined {
+  for (const label of issue.labels) {
+    const override = workflow.config.agent.model_labels[label];
+    if (override) return override;
+  }
+  return workflow.config.agent.model;
+}
+
+function buildAgentCommand(workflow: WorkflowDefinition, issue: Issue, prompt: string) {
+  const model = resolveModelForIssue(workflow, issue);
   const modelArg = model ? `--model ${shellQuote(model)}` : "";
 
   return workflow.config.agent.command
@@ -246,7 +265,8 @@ function hookEnv(workflow: WorkflowDefinition, issue: Issue, prompt?: string) {
     SYMPHONY_ISSUE_ID: issue.identifier,
     SYMPHONY_ISSUE_IDENTIFIER: issue.identifier,
     SYMPHONY_ISSUE_TITLE: issue.title,
-    SYMPHONY_AGENT_MODEL: workflow.config.agent.model ?? "",
+    SYMPHONY_ISSUE_LABELS: issue.labels.join(","),
+    SYMPHONY_AGENT_MODEL: resolveModelForIssue(workflow, issue) ?? "",
   };
 }
 
@@ -354,19 +374,21 @@ async function ensureDockerSandbox(workflow: WorkflowDefinition, issue: Issue, w
 
   if (workflow.config.sandbox.setup) {
     log("info", "sandbox_setup_started", { issue_id: issue.id, issue_identifier: issue.identifier, sandbox_name: sandboxName });
-    await execAsync(`sbx exec -w ${shellQuote(workspacePath)} ${shellQuote(sandboxName)} bash -lc ${shellQuote(workflow.config.sandbox.setup)}`, { cwd: workspacePath, shell: "bash", timeout: workflow.config.hooks.timeout_ms });
+    await execAsync(`sbx exec -w ${shellQuote(toSandboxPath(workspacePath))} ${shellQuote(sandboxName)} bash -lc ${shellQuote(workflow.config.sandbox.setup)}`, { cwd: workspacePath, shell: "bash", timeout: workflow.config.hooks.timeout_ms });
     log("info", "sandbox_setup_completed", { issue_id: issue.id, issue_identifier: issue.identifier, sandbox_name: sandboxName });
   }
 }
 
 function buildSandboxedShellCommand(command: string, promptFile: string, workflow: WorkflowDefinition, issue: Issue) {
+  const resolvedModel = resolveModelForIssue(workflow, issue);
   const exports = [
     `export SYMPHONY_PROMPT_FILE=${shellQuote(promptFile)}`,
     `export SYMPHONY_PROMPT="$(cat ${shellQuote(promptFile)})"`,
     `export SYMPHONY_ISSUE_ID=${shellQuote(issue.identifier)}`,
     `export SYMPHONY_ISSUE_IDENTIFIER=${shellQuote(issue.identifier)}`,
     `export SYMPHONY_ISSUE_TITLE=${shellQuote(issue.title)}`,
-    `export SYMPHONY_AGENT_MODEL=${shellQuote(workflow.config.agent.model ?? "")}`,
+    `export SYMPHONY_ISSUE_LABELS=${shellQuote(issue.labels.join(","))}`,
+    `export SYMPHONY_AGENT_MODEL=${shellQuote(resolvedModel ?? "")}`,
   ];
   return `${exports.join("; ")}; ${command}`;
 }
@@ -377,7 +399,7 @@ function spawnWorkerProcess(workflow: WorkflowDefinition, issue: Issue, workspac
   }
   const sandboxName = sandboxNameForIssue(workflow, issue);
   const sandboxCommand = buildSandboxedShellCommand(command, promptFile, workflow, issue);
-  return spawn("sbx", ["exec", "-w", workspacePath, sandboxName, "bash", "-lc", sandboxCommand], {
+  return spawn("sbx", ["exec", "-w", toSandboxPath(workspacePath), sandboxName, "bash", "-lc", sandboxCommand], {
     cwd: workspacePath,
     stdio: ["pipe", "pipe", "pipe"],
     detached: true,
@@ -748,7 +770,7 @@ async function runAgentAttempt(pi: ExtensionAPI, ctx: ExtensionContext, issue: I
     await runHook(workflow, issue, "before_run", workspace.path);
     prompt = await renderPrompt(workflow, issue, worker.attempt);
     const promptFile = await writePromptFile(workspace.path, prompt);
-    const command = buildAgentCommand(workflow, prompt);
+    const command = buildAgentCommand(workflow, issue, prompt);
     assertLaunchCwd(workspace.path, worker.workspacePath);
     await ensureDockerSandbox(workflow, issue, workspace.path);
 
