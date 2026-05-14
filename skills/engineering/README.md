@@ -4,9 +4,12 @@ Skills adapted from [mattpocock/skills — skills/engineering](https://github.co
 
 Included:
 
+- **[coding-guidelines](./coding-guidelines/SKILL.md)** — Small, reviewable changes; mechanical vs behavioral separation; local style; boundaries, security, and traceability (Linux/kernel-style discipline).
 - **[diagnose](./diagnose/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions.
-- **[grill-me](./grill-me/SKILL.md)** — Stress-test a plan against the domain model; update `CONTEXT.md` and ADRs inline. Same substance as upstream “grill-with-docs”, kept here as **grill-me**. Pair with the **pi-interview** extension for interactive Q&A when available.
+- **[grill-with-docs](./grill-with-docs/SKILL.md)** — Upstream-aligned grilling session from [mattpocock/skills — grill-with-docs](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs); stress-test a plan and maintain `CONTEXT.md` / ADRs.
+- **[grill-me](./grill-me/SKILL.md)** — Repo-local variant of the same workflow with Pi conventions (Linear, plannotator, **pi-interview**). Use when you want the tailored skill name or interactive interview UI.
 - **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** — Deepening opportunities informed by `CONTEXT.md` and `docs/adr/`.
+- **[senior-engineering-stewardship](./senior-engineering-stewardship/SKILL.md)** — Stewardship mindset (simplicity, boundaries, risk, verification); use with **coding-guidelines** for concrete change rules.
 - **[tdd](./tdd/SKILL.md)** — Red-green-refactor TDD with vertical slices.
 - **[to-issues](./to-issues/SKILL.md)** — Break plans into Linear issues (vertical slices).
 - **[to-prd](./to-prd/SKILL.md)** — Turn conversation context into a PRD as a Linear issue.

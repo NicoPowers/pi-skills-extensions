@@ -20,7 +20,7 @@ This is a unified Pi package combining **engineering skills** and the **Symphony
 ### Package layout
 
 ```
-skills/engineering/                    # 8 discipline skills (diagnose, tdd, grill-me, etc.)
+skills/engineering/                    # discipline skills (see skills/engineering/README.md)
 skills/symphony/                       # Symphony operator skill
 skills/docker-sandbox/                 # Docker Sandboxes (sbx) reference skill
 extensions/symphony/                   # Symphony Pi extension folder
